@@ -1,14 +1,14 @@
 /* -------------------------------------------------------------------------------- */
-/* -- ÂµGUI - Generic GUI module (C)Achim DÃ¶bler, 2015                            -- */
+/* -- µGUI - Generic GUI module (C)Achim Döbler, 2015                            -- */
 /* -------------------------------------------------------------------------------- */
-// ÂµGUI is a generic GUI module for embedded systems.
+// µGUI is a generic GUI module for embedded systems.
 // This is a free software that is open for education, research and commercial
 // developments under license policy of following terms.
 //
-//  Copyright (C) 2015, Achim DÃ¶bler, all rights reserved.
+//  Copyright (C) 2015, Achim Döbler, all rights reserved.
 //  URL: http://www.embeddedlightning.com/
 //
-// * The ÂµGUI module is a free software and there is NO WARRANTY.
+// * The µGUI module is a free software and there is NO WARRANTY.
 // * No restriction on use. You can use, modify and redistribute it for
 //   personal, non-profit or commercial products UNDER YOUR RESPONSIBILITY.
 // * Redistributions of source code must retain the above copyright notice.
@@ -27,7 +27,7 @@
 // for giving valuable suggestions regarding real-time os support.
 //
 // Samuel Kleiser
-// for reporting bugs and giving examples how to improve ÂµGUI.
+// for reporting bugs and giving examples how to improve µGUI.
 /* -------------------------------------------------------------------------------- */
 /* -- REVISION HISTORY                                                           -- */
 /* -------------------------------------------------------------------------------- */
@@ -49,7 +49,7 @@
 /* -------------------------------------------------------------------------------- */
 #include "ugui.h"
 
-/* Static functions  */
+/* Static functions */
  UG_RESULT _UG_WindowDrawTitle( UG_WINDOW* wnd );
  void _UG_WindowUpdate( UG_WINDOW* wnd );
  UG_RESULT _UG_WindowClear( UG_WINDOW* wnd );
@@ -6222,6 +6222,15 @@ UG_RESULT UG_WindowSetStyle( UG_WINDOW* wnd, UG_U8 style )
       {
          wnd->style &= ~WND_STYLE_SHOW_TITLE;
       }
+      /* Show borders? */
+      if ( style & WND_STYLE_NO_BORDERS )
+      {
+         wnd->style |= WND_STYLE_NO_BORDERS;
+      }
+      else
+      {
+         wnd->style &= ~WND_STYLE_NO_BORDERS;
+      }
       wnd->state |= WND_STATE_UPDATE;
       return UG_RESULT_OK;
    }
@@ -6406,12 +6415,22 @@ UG_RESULT UG_WindowGetArea( UG_WINDOW* wnd, UG_AREA* a )
       a->ys = wnd->ys;
       a->xe = wnd->xe;
       a->ye = wnd->ye;
-      if ( wnd->style & WND_STYLE_3D )
+      if ( !(wnd->style & WND_STYLE_NO_BORDERS) )
       {
-         a->xs+=3;
-         a->ys+=3;
-         a->xe-=3;
-         a->ye-=3;
+         if ( wnd->style & WND_STYLE_3D )
+         {
+            a->xs+=3;
+            a->ys+=3;
+            a->xe-=3;
+            a->ye-=3;
+         }
+         else // 2D
+         {
+            a->xs+=1;
+            a->ys+=1;
+            a->xe-=1;
+            a->ye-=1;
+         }
       }
       if ( wnd->style & WND_STYLE_SHOW_TITLE )
       {
@@ -6429,8 +6448,12 @@ UG_S16 UG_WindowGetInnerWidth( UG_WINDOW* wnd )
    {
       w = wnd->xe-wnd->xs;
 
-      /* 3D style? */
-      if ( wnd->style & WND_STYLE_3D ) w-=6;
+      if ( !(wnd->style & WND_STYLE_NO_BORDERS) )
+      {
+          /* 3D style? */
+          if ( wnd->style & WND_STYLE_3D ) w-=6;
+          else w-=2; // 2D
+      }
 
       if ( w < 0 ) w = 0;
    }
@@ -6456,8 +6479,12 @@ UG_S16 UG_WindowGetInnerHeight( UG_WINDOW* wnd )
    {
       h = wnd->ye-wnd->ys;
 
-      /* 3D style? */
-      if ( wnd->style & WND_STYLE_3D ) h-=6;
+      if ( !(wnd->style & WND_STYLE_NO_BORDERS) )
+      {
+          /* 3D style? */
+          if ( wnd->style & WND_STYLE_3D ) h-=6;
+          else h-=2; // 2D
+      }
 
       /* Is the title active */
       if ( wnd->style & WND_STYLE_SHOW_TITLE ) h-=wnd->title.height;
@@ -6491,13 +6518,23 @@ UG_RESULT _UG_WindowDrawTitle( UG_WINDOW* wnd )
       xe = wnd->xe;
       ye = wnd->ye;
 
-      /* 3D style? */
-      if ( wnd->style & WND_STYLE_3D )
+      if ( !(wnd->style & WND_STYLE_NO_BORDERS) )
       {
-         xs+=3;
-         ys+=3;
-         xe-=3;
-         ye-=3;
+         /* 3D style? */
+         if ( wnd->style & WND_STYLE_3D )
+         {
+            xs+=3;
+            ys+=3;
+            xe-=3;
+            ye-=3;
+         }
+         else
+         {
+            xs+=1;
+            ys+=1;
+            xe-=1;
+            ye-=1;
+         }
       }
 
       /* Is the window active or inactive? */
@@ -6549,15 +6586,28 @@ void _UG_WindowUpdate( UG_WINDOW* wnd )
    /* Is the window visible? */
    if ( wnd->state & WND_STATE_VISIBLE )
    {
-      /* 3D style? */
-      if ( (wnd->style & WND_STYLE_3D) && !(wnd->state & WND_STATE_REDRAW_TITLE) )
+      if ( !(wnd->style & WND_STYLE_NO_BORDERS) )
       {
-         _UG_DrawObjectFrame(xs,ys,xe,ye,(UG_COLOR*)pal_window);
-         xs+=3;
-         ys+=3;
-         xe-=3;
-         ye-=3;
+         /* 3D style? */
+         if ( (wnd->style & WND_STYLE_3D) && !(wnd->state & WND_STATE_REDRAW_TITLE) )
+         {
+            _UG_DrawObjectFrame(xs,ys,xe,ye,(UG_COLOR*)pal_window);
+            xs+=3;
+            ys+=3;
+            xe-=3;
+            ye-=3;
+         }
+         /* 2D style? */
+         if ( !(wnd->style & WND_STYLE_3D) && !(wnd->state & WND_STATE_REDRAW_TITLE) )
+         {
+            UG_DrawFrame(xs,ys,xe,ye,wnd->title.bc);
+            xs+=1;
+            ys+=1;
+            xe-=1;
+            ye-=1;
+         }
       }
+      
       /* Show title bar? */
       if ( wnd->style & WND_STYLE_SHOW_TITLE )
       {
@@ -7085,8 +7135,11 @@ void _UG_ButtonUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
             _UG_SendObjectPrerenderEvent(wnd, obj);
 #endif
 
-            /* 3D or 2D style? */
-            d = ( btn->style & BTN_STYLE_3D )? 3:1;
+            if ( !(btn->style & BTN_STYLE_NO_BORDERS) )
+            {
+               /* 3D or 2D style? */
+               d = ( btn->style & BTN_STYLE_3D )? 3:1;
+            }
 
             txt.bc = btn->bc;
             txt.fc = btn->fc;
@@ -7652,8 +7705,11 @@ void _UG_CheckboxUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
        
       if ( obj->state & OBJ_STATE_VISIBLE )
       {
-         /* 3D or 2D style? */
-         d  = ( chb->style & CHB_STYLE_3D )? 3:1;
+         if ( !(chb->style & CHB_STYLE_NO_BORDERS) )
+         {
+           /* 3D or 2D style? */
+           d  = ( chb->style & CHB_STYLE_3D )? 3:1;
+         }
          d2 = (chb->font->char_width < chb->font->char_height) ? chb->font->char_height : chb->font->char_width;
           
          /* Full redraw necessary? */
@@ -8233,5 +8289,3 @@ void _UG_ImageUpdate(UG_WINDOW* wnd, UG_OBJECT* obj)
       obj->state &= ~OBJ_STATE_UPDATE;
    }
 }
-
-
