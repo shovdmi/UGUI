@@ -31,6 +31,8 @@
 /* -------------------------------------------------------------------------------- */
 /* -- REVISION HISTORY                                                           -- */
 /* -------------------------------------------------------------------------------- */
+//  Mar 21, 2019  V0.3.2  2D and NO_BORDERS window's styles added
+//
 //  Dec 20, 2015  V0.31 Checkbox component with all funtions added.
 //                      Cyrillic font 8x12 added.
 //                      RGB565 color schema added.
