@@ -17,7 +17,7 @@
 #ifndef __UGUI_H
 #define __UGUI_H
 
-#include "system.h"
+#include "stdint.h"
 #include "ugui_config.h"
 
 
@@ -346,6 +346,8 @@ struct S_WINDOW
 #define WND_STYLE_3D                                  (1<<0)
 #define WND_STYLE_HIDE_TITLE                          (0<<1)
 #define WND_STYLE_SHOW_TITLE                          (1<<1)
+//#define WND_STYLE_to be defined...                  (1<<2) // this is an empty bit for future usage (every NO_BORDERS has 1<<3 value)
+#define WND_STYLE_NO_BORDERS                          (1<<3)
 
 /* -------------------------------------------------------------------------------- */
 /* -- BUTTON OBJECT                                                              -- */
